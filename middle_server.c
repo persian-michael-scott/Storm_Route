@@ -79,7 +79,19 @@ void handle_auth_request(WorkerData* data, const char* buffer, const struct sock
 
     // Generate a secure random token
     uint64_t token;
-    arc4random_buf(&token, sizeof(token));
+    int urandom_fd = open("/dev/urandom", O_RDONLY);
+    if (urandom_fd < 0) {
+        perror("Failed to open /dev/urandom");
+        pool_release(&data->session_pool, session);
+        return;
+    }
+    ssize_t result = read(urandom_fd, &token, sizeof(token));
+    close(urandom_fd);
+    if (result < (ssize_t)sizeof(token)) {
+        fprintf(stderr, "Failed to read from /dev/urandom\n");
+        pool_release(&data->session_pool, session);
+        return;
+    }
     if (token == 0) token = 1; // Ensure token is never 0
 
     session->token = token;

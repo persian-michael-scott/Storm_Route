@@ -275,14 +275,14 @@ do {                                                                           \
   find_mid_core((head)->hh.next, (tail)->hh.prev)                              \
 )
 
-#define merge_sort_core(list, cmpfcn, mid)                                     \
+#define merge_sort_core(uthash_list, cmpfcn, mid)                              \
 (
   (mid)->hh.next = NULL,                                                       \
   merge_lists(                                                                 \
-    merge_sort((list), cmpfcn),                                                \
+    merge_sort((uthash_list), cmpfcn),                                         \
     merge_sort((mid), cmpfcn),                                                 \
     cmpfcn                                                                     \
-  )                                                                            \
+  )
 )
 
 #define merge_lists(l1, l2, cmpfcn)                                            \
