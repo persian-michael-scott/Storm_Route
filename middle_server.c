@@ -9,6 +9,8 @@
 #include <netinet/udp.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include <hiredis/hiredis.h>
 #include "uthash.h"
 
@@ -169,19 +171,20 @@ void* worker_thread_main(void* arg) {
     // ... (setup is the same as before) ...
 
     while (1) {
-        int n_events = epoll_wait(data->epoll_fd, events, MAX_EVENTS_PER_WORKER, 1000);
+        struct epoll_event events[MAX_EVENTS_PER_WORKER];
+        int n_events = epoll_wait(((WorkerData*)arg)->epoll_fd, events, MAX_EVENTS_PER_WORKER, 1000);
         for (int i = 0; i < n_events; i++) {
             if (events[i].data.ptr == NULL) { // Packet from raw socket
                 char buffer[BUFFER_SIZE];
                 struct sockaddr_in addr; socklen_t addr_len = sizeof(addr);
-                int len = recvfrom(data->raw_sock, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&addr, &addr_len);
+                int len = recvfrom(((WorkerData*)arg)->raw_sock, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&addr, &addr_len);
                 if (len > 0) {
                     // Check if it's an auth packet or a game packet
                     if (len > 5 && strncmp(buffer, AUTH_PREFIX, 5) == 0) {
-                        handle_auth_request(data, buffer, &addr);
+                        handle_auth_request((WorkerData*)arg, buffer, &addr);
                     } else {
                         // It must be a game packet containing a token
-                        handle_client_packet(data, buffer, len, &addr);
+                        handle_client_packet((WorkerData*)arg, buffer, len, &addr);
                     }
                 }
             } else { // Packet from a game server UDP socket
