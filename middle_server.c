@@ -10,7 +10,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <hiredis/hiredis.h>
-#include <uthash.h>
+#include "uthash.h"
 
 #define CUSTOM_PROTOCOL 18
 #define BUFFER_SIZE 65535
