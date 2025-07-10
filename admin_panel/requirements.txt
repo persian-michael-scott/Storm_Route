@@ -1,0 +1,5 @@
+Flask
+redis
+python-dotenv
+python-telegram-bot
+apscheduler
